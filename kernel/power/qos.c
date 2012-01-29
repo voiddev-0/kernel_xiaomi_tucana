@@ -496,7 +496,6 @@ static void __pm_qos_update_request(struct pm_qos_request *req,
 			&req->node, PM_QOS_UPDATE_REQ, new_value);
 }
 
-#ifdef CONFIG_SMP
 static void pm_qos_irq_release(struct kref *ref)
 {
 	unsigned long flags;
@@ -516,23 +515,6 @@ static void pm_qos_irq_release(struct kref *ref)
 }
 
 #ifdef CONFIG_SMP
-static void pm_qos_irq_release(struct kref *ref)
-{
-	unsigned long flags;
-	struct irq_affinity_notify *notify = container_of(ref,
-					struct irq_affinity_notify, kref);
-	struct pm_qos_request *req = container_of(notify,
-					struct pm_qos_request, irq_notify);
-	struct pm_qos_constraints *c =
-				pm_qos_array[req->pm_qos_class]->constraints;
-
-	spin_lock_irqsave(&pm_qos_lock, flags);
-	cpumask_setall(&req->cpus_affine);
-	spin_unlock_irqrestore(&pm_qos_lock, flags);
-
-	pm_qos_update_target(c, &req->node, PM_QOS_UPDATE_REQ,
-			c->default_value);
-}
 
 static void pm_qos_irq_notify(struct irq_affinity_notify *notify,
 		const cpumask_t *mask)
@@ -643,6 +625,35 @@ void pm_qos_add_request(struct pm_qos_request *req,
 #endif
 }
 EXPORT_SYMBOL_GPL(pm_qos_add_request);
+
+/**
+ * pm_qos_update_request_timeout - modifies an existing qos request temporarily.
+ * @req : handle to list element holding a pm_qos request to use
+ * @new_value: defines the temporal qos request
+ * @timeout_us: the effective duration of this qos request in usecs.
+ *
+ * After timeout_us, this qos request is cancelled automatically.
+ */
+void pm_qos_update_request_timeout(struct pm_qos_request *req, s32 new_value,
+				   unsigned long timeout_us)
+{
+	if (!req)
+		return;
+	if (WARN(!pm_qos_request_active(req),
+		 "%s called for unknown object.", __func__))
+		return;
+
+	cancel_delayed_work_sync(&req->work);
+
+	trace_pm_qos_update_request_timeout(req->pm_qos_class,
+					    new_value, timeout_us);
+	if (new_value != req->node.prio)
+		pm_qos_update_target(
+			pm_qos_array[req->pm_qos_class]->constraints,
+			&req->node, PM_QOS_UPDATE_REQ, new_value);
+
+	schedule_delayed_work(&req->work, usecs_to_jiffies(timeout_us));
+}
 
 /**
  * pm_qos_update_request - modifies an existing qos request
@@ -851,16 +862,11 @@ static int __init pm_qos_power_init(void)
 {
 	int ret = 0;
 	int i;
-	struct dentry *d;
 
 	BUILD_BUG_ON(ARRAY_SIZE(pm_qos_array) != PM_QOS_NUM_CLASSES);
 
-	d = debugfs_create_dir("pm_qos", NULL);
-	if (IS_ERR_OR_NULL(d))
-		d = NULL;
-
-	for (i = PM_QOS_CPU_DMA_LATENCY; i < PM_QOS_NUM_CLASSES; i++) {
-		ret = register_pm_qos_misc(pm_qos_array[i], d);
+	for (i = 1; i < PM_QOS_NUM_CLASSES; i++) {
+		ret = register_pm_qos_misc(pm_qos_array[i], NULL);
 		if (ret < 0) {
 			printk(KERN_ERR "pm_qos_param: %s setup failed\n",
 			       pm_qos_array[i]->name);
