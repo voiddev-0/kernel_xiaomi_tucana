@@ -8,6 +8,7 @@
 #include <linux/plist.h>
 #include <linux/notifier.h>
 #include <linux/device.h>
+#include <linux/workqueue.h>
 #include <linux/cpumask.h>
 #include <linux/interrupt.h>
 
