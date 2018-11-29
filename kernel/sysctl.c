@@ -455,6 +455,7 @@ static struct ctl_table kern_table[] = {
 		.extra2		= &two_hundred_fifty_five,
 	},
 #endif
+#ifdef CONFIG_SMP
 	{
 		.procname	= "sched_upmigrate",
 		.data		= &sysctl_sched_capacity_margin_up,
@@ -470,28 +471,13 @@ static struct ctl_table kern_table[] = {
 		.proc_handler	= sched_updown_migrate_handler,
 	},
 	{
-		.procname	= "sched_upmigrate_boosted",
-		.data		= &sysctl_sched_capacity_margin_up_boosted,
-		.maxlen		= sizeof(unsigned int) * MAX_MARGIN_LEVELS,
+		.procname	= "sched_busy_hysteresis_enable_cpus",
+		.data		= &sched_busy_hysteresis_cpubits,
+		.maxlen		= NR_CPUS,
 		.mode		= 0644,
-		.proc_handler	= sched_updown_migrate_handler_boosted,
+		.proc_handler	= proc_do_large_bitmap,
 	},
-	{
-		.procname	= "sched_downmigrate_boosted",
-		.data		= &sysctl_sched_capacity_margin_down_boosted,
-		.maxlen		= sizeof(unsigned int) * MAX_MARGIN_LEVELS,
-		.mode		= 0644,
-		.proc_handler	= sched_updown_migrate_handler_boosted,
-	},
-	{
-		.procname       = "sched_energy_aware",
-		.data           = &sysctl_sched_energy_aware,
-		.maxlen         = sizeof(unsigned int),
-		.mode           = 0644,
-		.proc_handler   = proc_dointvec_minmax,
-		.extra1         = &zero,
-		.extra2         = &one,
-	},
+#endif
 #ifdef CONFIG_SCHED_DEBUG
 	{
 		.procname	= "sched_min_granularity_ns",
