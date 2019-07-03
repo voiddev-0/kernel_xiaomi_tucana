@@ -2610,8 +2610,11 @@ void update_best_cluster(struct related_thread_group *grp,
 				   u64 demand, bool boost)
 {
 	if (boost) {
-		grp->preferred_cluster = sched_cluster[1];
-		grp->skip_min = true;
+		/*
+		 * since we are in boost, we can keep grp on min, the boosts
+		 * will ensure tasks get to bigs
+		 */
+		grp->skip_min = false;
 		return;
 	}
 
@@ -3147,10 +3150,6 @@ static bool is_rtgb_active(void)
 {
 	struct related_thread_group *grp;
 	struct sched_cluster *cluster;
-
-	if (!sysctl_sched_little_cluster_coloc_fmin_khz ||
-			sched_boost() == CONSERVATIVE_BOOST)
-		return;
 
 	grp = lookup_related_thread_group(DEFAULT_CGROUP_COLOC_ID);
 	if (!grp || !grp->preferred_cluster ||
