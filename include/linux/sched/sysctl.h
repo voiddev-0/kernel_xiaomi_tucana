@@ -38,6 +38,7 @@ extern unsigned int
        sysctl_sched_capacity_margin_down_boosted[MAX_MARGIN_LEVELS];
 #ifdef CONFIG_SCHED_WALT
 extern unsigned int sysctl_sched_user_hint;
+extern const int sched_user_hint_max;
 extern unsigned int sysctl_sched_cpu_high_irqload;
 extern unsigned int sysctl_sched_boost;
 extern unsigned int sysctl_sched_group_upmigrate_pct;
