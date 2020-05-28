@@ -8170,8 +8170,13 @@ static int find_energy_efficient_cpu(struct sched_domain *sd,
 	u64 start_t = 0;
 	int next_cpu = -1, backup_cpu = -1;
 	int boosted = (schedtune_task_boost(p) > 0 || per_task_boost(p) > 0);
-	int start_cpu = get_start_cpu(p);
+	int start_cpu;
 
+	if (is_many_wakeup(sibling_count_hint) && prev_cpu != cpu &&
+			cpumask_test_cpu(prev_cpu, &p->cpus_allowed))
+		return prev_cpu;
+
+	start_cpu = get_start_cpu(p);
 	if (start_cpu < 0)
 		return -1;
 
@@ -8191,11 +8196,6 @@ static int find_energy_efficient_cpu(struct sched_domain *sd,
 				bias_to_this_cpu(p, cpu, start_cpu)) {
 		target_cpu = cpu;
 		fbt_env.fastpath = SYNC_WAKEUP;
-		goto out;
-	}
-
-	if (is_many_wakeup(sibling_count_hint) && prev_cpu != cpu &&
-				bias_to_this_cpu(p, prev_cpu, start_cpu)) {
 		goto out;
 	}
 
