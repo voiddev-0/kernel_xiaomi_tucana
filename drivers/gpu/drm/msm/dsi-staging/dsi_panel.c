@@ -1020,17 +1020,18 @@ static int dsi_panel_parse_timing(struct dsi_mode_info *mode,
 
 	mode->clk_rate_hz = !rc ? tmp64 : 0;
 	if (tmp64 == 1100000000 || tmp64 == 1103000000) {
-        if (framerate_override == 5)
-			mode->clk_rate_hz = 1485000000; // 81hz
-		else if (framerate_override == 4)
+		if (framerate_override == 5)
 			mode->clk_rate_hz = 1375000000; // 75hz
-		else if (framerate_override == 3)
+		else if (framerate_override == 4)
 			mode->clk_rate_hz = 1320000000; // 72hz
-		else if (framerate_override == 2)
+		else if (framerate_override == 3)
 			mode->clk_rate_hz = 1265000000; // 69hz
-		else if (framerate_override == 1)
+		else if (framerate_override == 2)
 			mode->clk_rate_hz = 1210000000; // 66hz
+		else if (framerate_override == 1)
+			mode->clk_rate_hz = 1155000000; // 63hz
 	}
+		
 	display_mode->priv_info->clk_rate_hz = mode->clk_rate_hz;
 
 	rc = utils->read_u32(utils->data, "qcom,mdss-mdp-transfer-time-us",
@@ -1056,15 +1057,15 @@ static int dsi_panel_parse_timing(struct dsi_mode_info *mode,
 	}
 	if (mode->refresh_rate == 60) {
         if (framerate_override == 5)
-			mode->refresh_rate = 81;
-		else if (framerate_override == 4)
 			mode->refresh_rate = 75;
-		else if (framerate_override == 3)
+		else if (framerate_override == 4)
 			mode->refresh_rate = 72;
-		else if (framerate_override == 2)
+		else if (framerate_override == 3)
 			mode->refresh_rate = 69;
-		else if (framerate_override == 1)
+		else if (framerate_override == 2)
 			mode->refresh_rate = 66;
+		else if (framerate_override == 1)
+			mode->refresh_rate = 63;
 	}
 
 	rc = utils->read_u32(utils->data, "qcom,mdss-dsi-panel-width",
