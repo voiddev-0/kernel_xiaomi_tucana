@@ -230,10 +230,6 @@ static void do_input_boost_rem(struct work_struct *work)
 		sched_boost_active = false;
 	}
 
-	if (sched_prefer_idle_active) {
-		sched_set_prefer_idle(false);
-		sched_prefer_idle_active = false;
-	}
 }
 
 static void do_input_boost(struct work_struct *work)
@@ -245,10 +241,6 @@ static void do_input_boost(struct work_struct *work)
 	if (sched_boost_active) {
 		sched_set_boost(0);
 		sched_boost_active = false;
-	}
-	if (sched_prefer_idle_active) {
-		sched_set_prefer_idle(false);
-		sched_prefer_idle_active = false;
 	}
 
 	/* Set the input_boost_min for all CPUs in the system */
@@ -268,10 +260,6 @@ static void do_input_boost(struct work_struct *work)
 			pr_err("cpu-boost: sched boost enable failed\n");
 		else
 			sched_boost_active = true;
-	}
-	if (sched_prefer_idle) {
-		sched_set_prefer_idle(true);
-		sched_prefer_idle_active = true;
 	}
 
 	queue_delayed_work(cpu_boost_wq, &input_boost_rem,
